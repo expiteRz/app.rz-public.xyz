@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+@import "tailwindcss";
+
+@custom-variant hover (&:hover);
+
+@theme {
+  --default-font-family: "Comfortaa", sans-serif;
+  --default-color: 266deg, 18%;
+  --default-mkw-color: 205deg, 18%;
+
+  --color-zr-900: hsl(var(--default-color), 6%);
+  --color-zr-850: hsl(var(--default-color), 12%);
+  --color-zr-800: hsl(var(--default-color), 18%);
+  --color-zr-750: hsl(var(--default-color), 24%);
+  --color-zr-700: hsl(var(--default-color), 30%);
+  --color-zr-650: hsl(var(--default-color), 36%);
+  --color-zr-600: hsl(var(--default-color), 42%);
+  --color-zr-550: hsl(var(--default-color), 48%);
+  --color-zr-500: hsl(var(--default-color), 54%);
+  --color-zr-450: hsl(var(--default-color), 60%);
+  --color-zr-400: hsl(var(--default-color), 66%);
+  --color-zr-350: hsl(var(--default-color), 72%);
+  --color-zr-300: hsl(var(--default-color), 78%);
+  --color-zr-250: hsl(var(--default-color), 84%);
+  --color-zr-200: hsl(var(--default-color), 90%);
+  --color-zr-150: hsl(var(--default-color), 96%);
+  --color-zr-100: hsl(var(--default-color), 100%);
+
+  --color-mkw-900: hsl(var(--default-mkw-color), 6%);
+  --color-mkw-850: hsl(var(--default-mkw-color), 12%);
+  --color-mkw-800: hsl(var(--default-mkw-color), 18%);
+  --color-mkw-750: hsl(var(--default-mkw-color), 24%);
+  --color-mkw-700: hsl(var(--default-mkw-color), 30%);
+  --color-mkw-650: hsl(var(--default-mkw-color), 36%);
+  --color-mkw-600: hsl(var(--default-mkw-color), 42%);
+  --color-mkw-550: hsl(var(--default-mkw-color), 48%);
+  --color-mkw-500: hsl(var(--default-mkw-color), 54%);
+  --color-mkw-450: hsl(var(--default-mkw-color), 60%);
+  --color-mkw-400: hsl(var(--default-mkw-color), 66%);
+  --color-mkw-350: hsl(var(--default-mkw-color), 72%);
+  --color-mkw-300: hsl(var(--default-mkw-color), 78%);
+  --color-mkw-250: hsl(var(--default-mkw-color), 84%);
+  --color-mkw-200: hsl(var(--default-mkw-color), 90%);
+  --color-mkw-150: hsl(var(--default-mkw-color), 96%);
+  --color-mkw-100: hsl(var(--default-mkw-color), 100%);
+
+  --color-index-point: hsl(266deg, 32%, 60%);
+  --color-index-bg: hsl(209deg, 18%, 18%);
+
+  --color-dev-chip: hsl(40deg, 32%, 30%);
+  --color-dev-chip-text: hsl(40deg, 32%, 78%);
+  --color-dev-chip-selection: hsl(40deg, 32%, 18%);
+}
+
+@layer components {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}
+
+:root {
+  --background-rgb: 214, 219, 220;
+  --foreground-rgb: 0, 0, 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-rgb: 0, 0, 0;
+    --foreground-rgb: 255, 255, 255;
+  }
+}
+
+body {
+  /* background: rgb(var(--background-rgb));
+  color: rgb(var(--foreground-rgb)); */
+  width: 100vw;
+  min-height: 100vh;
+}
