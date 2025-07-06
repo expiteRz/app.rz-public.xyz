@@ -1,5 +1,5 @@
 {
-	"name": "example-with-tailwindcss",
+	"name": "rz-public-app",
 	"type": "module",
 	"scripts": {
 		"dev": "vinxi dev --port 5173",
