@@ -10,28 +10,28 @@ import Home from "./routes";
 import KclFlagCalculator from "./routes/mario-kart-wii/kcl-flag-calculator";
 
 export const AppList: AppListInterface[] = [
-	{
-		name: "KCL Flag Calculator",
-		path: "/mario-kart-wii/kcl-flag-calculator",
-		component: KclFlagCalculator,
-	},
+  {
+    name: "KCL Flag Calculator",
+    path: "/mario-kart-wii/kcl-flag-calculator",
+    component: KclFlagCalculator,
+  },
 ];
 
 export default function App() {
-	return (
-		<MetaProvider>
-			<Title />
-			<Router
-				root={(props) => (
-					<>
-						<Nav />
-						<Suspense>{props.children}</Suspense>
-					</>
-				)}>
-				<Route path="/" component={Home} />
-				<For each={AppList}>{(v) => <Route path={v.path} component={v.component} />}</For>
-				<Route path="*404" component={NotFound} />
-			</Router>
-		</MetaProvider>
-	);
+  return (
+    <MetaProvider>
+      <Title />
+      <Router
+        root={(props) => (
+          <>
+            <Nav />
+            <Suspense>{props.children}</Suspense>
+          </>
+        )}>
+        <Route path="/" component={Home} />
+        <For each={AppList}>{(v) => <Route path={v.path} component={v.component} />}</For>
+        <Route path="*404" component={NotFound} />
+      </Router>
+    </MetaProvider>
+  );
 }
