@@ -1,4 +1,4 @@
-export const Variants: { [baseType: string]: { exactId: number; label: string; description?: string; }[]; } = {
+export const AllVariants: { [baseType: string]: { exactId: number; label: string; description?: string; }[]; } = {
   "Road": [ // 0x00
     { exactId: 0, label: "Normal" },
     { exactId: 1, label: "Dirt, with particle" },
