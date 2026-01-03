@@ -13,7 +13,7 @@
     "types": ["./worker-configuration.d.ts", "node", "vinxi/types/client"],
     "isolatedModules": true,
     "paths": {
-      "~/*": ["./src/*"]
-    }
-  }
+      "~/*": ["./src/*"],
+    },
+  },
 }

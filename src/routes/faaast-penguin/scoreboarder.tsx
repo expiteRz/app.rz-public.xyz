@@ -1,5 +1,6 @@
 import { Description, Title } from "~/components/SEO";
 import Subject from "~/components/Subject";
+import ValueDisplay from "~/components/ValueDisplay";
 
 export default function Scoreboarder() {
   return (
@@ -9,6 +10,7 @@ export default function Scoreboarder() {
       <div class="bg-zr-500/20 border-zr-700 max-w-2xl p-6 mx-auto flex border rounded-md">
         <Subject name="FP Scoreboarder" version="pre-1.0" />
       </div>
+      <ValueDisplay id="test" label="test" value="test" />
     </>
   );
 }

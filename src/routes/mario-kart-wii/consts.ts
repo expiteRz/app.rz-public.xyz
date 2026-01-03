@@ -1,3 +1,5 @@
+/// KCL ///
+
 export const AllVariants: { [baseType: string]: { exactId: number; label: string; description?: string; }[]; } = {
   "Road": [ // 0x00
     { exactId: 0, label: "Normal" },
@@ -324,3 +326,33 @@ export const AllVariants: { [baseType: string]: { exactId: number; label: string
 // export const SoundTriggerVariants: { [courseId: string]: { label: string; description?: string; }[]; } = {
 
 // };
+
+/// ObjFlow.bin ///
+
+export const ClippingMethods: { exactId: number; label: string; description?: string; }[] = [
+  { exactId: 0x00, label: "Disabled" },
+  { exactId: 0x01, label: "Enabled, option 1" },
+  { exactId: 0x02, label: "Enabled, option 2" },
+  { exactId: 0x08, label: "Enabled with AREA, option 1" },
+  { exactId: 0x09, label: "Enabled with AREA, option 2" },
+  { exactId: 0x0A, label: "Enabled with AREA, option 3" },
+  { exactId: 0x0B, label: "Enabled with AREA, option 4" }
+];
+
+export const SolidityMethods: { label: string; visibilitySettings?: 1 | 2 | 3; }[] = [
+  { label: "None" },
+  { label: "Sphere", visibilitySettings: 1 },
+  { label: "Cylinder", visibilitySettings: 2 },
+  { label: "Box", visibilitySettings: 3 },
+  { label: "KCL (from track file)" },
+  { label: "Internal KCL" }
+];
+
+export const SoliditySettingLabels: { setting1?: string; setting2?: string; setting3?: string; }[] = [
+  {},
+  { setting1: "Radius" },
+  { setting1: "Radius", setting2: "Height" },
+  { setting1: "X", setting2: "Y", setting3: "Z" },
+  {},
+  {}
+];

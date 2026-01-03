@@ -3,8 +3,11 @@
 import { JSX } from "solid-js";
 
 declare interface AppListInterface {
-    name?: string;
-    path: string;
-    component: () => JSX.Element;
-    seizureWarning?: boolean; // Temporarily method due to not supporting themes
+  type?: "app" | "redirect";
+  category?: "mkw" | "fp";
+  name?: string;
+  url: string;
+  component?: () => JSX.Element;
+  seizureWarning?: boolean; // Temporarily method due to not supporting themes
+  indev?: boolean;
 }

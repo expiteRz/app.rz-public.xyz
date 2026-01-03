@@ -18,7 +18,7 @@ export default function Nav() {
       <button
         class={`${determineColor()} fixed flex top-0 ${active(
           "/",
-        )} w-[3em] h-[3em] m-3 border rounded-lg transition-all duration-350 cursor-pointer`}
+        )} w-[3em] h-[3em] m-3 border rounded-lg transition-all duration-350 cursor-pointer backdrop-blur-xs`}
         // @ts-ignore
         onClick={() => navigate(backPath())}>
         <svg xmlns="http://www.w3.org/2000/svg" width={20} viewBox="0 0 576 512" class="m-auto">
@@ -29,7 +29,7 @@ export default function Nav() {
         </svg>
       </button>
       <a
-        class={`${determineColor()} fixed flex top-0 right-0 w-[3em] h-[3em] m-3 border rounded-lg transition-all duration-350`}
+        class={`${determineColor()} fixed flex top-0 right-0 w-[3em] h-[3em] m-3 border rounded-lg transition-all duration-350 backdrop-blur-xs`}
         href="https://github.com/expiteRz/app.rz-public.xyz"
         target="_blank">
         <svg xmlns="http://www.w3.org/2000/svg" height={20} viewBox="0 0 496 512" class="m-auto">

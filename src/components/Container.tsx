@@ -1,15 +1,19 @@
-import { ParentProps } from "solid-js";
-// import { MaxWidth } from "~/global";
+import { Meta } from "@solidjs/meta";
+import { JSX, ParentProps, Show } from "solid-js";
+import { Description, Title } from "./SEO";
 import Subject from "./Subject";
 
-export default function Container(
-  props: ParentProps<{
-    name: string;
-    version: string;
-    maxWidth?: string;
-    colors?: "zr" | "mkw";
-  }>,
-) {
+type Props = ParentProps<{
+  name: string;
+  version: string;
+  indev?: boolean;
+  description?: string;
+  maxWidth?: string;
+  colors?: "zr" | "mkw";
+  ribbon?: JSX.Element;
+}>;
+
+export default function Container(props: Props) {
   const pMaxWidth = props.maxWidth ?? "md:container";
   const pColors = () => {
     switch (props.colors) {
@@ -22,10 +26,20 @@ export default function Container(
   const pHrColor = () => (props.colors ? `border-${props.colors}-600` : "border-zr-600");
 
   return (
-    <div id="app_holder" class={`${pColors()} ${pMaxWidth} p-6 mx-2 sm:mx-auto flex flex-col gap-4 border rounded-lg`}>
-      <Subject name={props.name} version={props.version} />
-      <hr class={pHrColor()} />
-      {props.children}
-    </div>
+    <>
+      <Title>{props.name}</Title>
+      {props.description ? <Description>{props.description}</Description> : <></>}
+      <Meta name="versionApp" content={props.version} />
+      <div id="app_holder" class={`${pColors()} ${pMaxWidth} p-6 mx-auto flex flex-col gap-4 border rounded-lg`}>
+        <div class="flex flex-col gap-3 sm:flex-row sm:gap-0">
+          <Subject name={props.name} version={props.version} color={props.colors} indev={props.indev} />
+          <Show when={props.ribbon}>
+            <div class="flex-none ml-auto mr-0">{props.ribbon}</div>
+          </Show>
+        </div>
+        <hr class={pHrColor()} />
+        {props.children}
+      </div>
+    </>
   );
 }

@@ -1,19 +1,19 @@
 import { createEffect, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import Container from "~/components/Container";
-import AngleLeft from "~/components/icons/AngleLeft";
-import AngleRight from "~/components/icons/AngleRight";
-import Copy from "~/components/icons/Copy";
-import { Description, Title } from "~/components/SEO";
+import MultiPicker from "~/components/MultiPicker";
+import NumericInput from "~/components/NumericInput";
+import Picklist from "~/components/Picklist";
+import ValueDisplay from "~/components/ValueDisplay";
 import { CopyToClipboard } from "~/lib/Clipboard";
 import { createLocalStorage } from "~/lib/LocalStorage";
 import { AllVariants } from "./consts";
 
 export default function KclFlagCalculator() {
-  // Constraints
+  /// Constraints ///
   const BaseTypes = Object.keys(AllVariants);
   const Variants = Object.values(AllVariants);
 
-  // Local profile
+  /// Local profile ///
   const [previousData, setPreviousData] = createLocalStorage("kclFlag_ZR", {
     baseType: 0x00,
     variant: 0x0,
@@ -22,80 +22,95 @@ export default function KclFlagCalculator() {
     effect: 0x0,
   });
 
-  // Target elements
-  let displayResult: HTMLSpanElement | undefined;
-  let displayVariant: HTMLSpanElement | undefined;
-  let dropdownBaseType: HTMLDivElement | undefined;
-  let dropdownVariant: HTMLDivElement | undefined;
-  let buttonBaseType: HTMLSpanElement | undefined;
-  let buttonVariant: HTMLSpanElement | undefined;
+  /// Target elements ///
+  let buttonBaseType: HTMLButtonElement | undefined;
+  let buttonVariant: HTMLButtonElement | undefined;
+  let hexButtonBaseType: HTMLSpanElement | undefined;
+  let hexButtonVariant: HTMLSpanElement | undefined;
 
-  // Signals
-  const [baseType, setBaseType] = createSignal(previousData.baseType);
-  const [variant, setVariant] = createSignal(previousData.variant);
-  const [lightIndex, setLightIndex] = createSignal(
-    previousData.lightIndex >= 0 && previousData.lightIndex < 8 ? previousData.lightIndex : 0,
-  );
+  /// Signals ///
+  const [selectedBaseType, setSelectedBaseType] = createSignal(previousData.baseType > 0x1f || previousData.baseType < 0 ? 0 : previousData.baseType);
+  const [selectedVariant, setSelectedVariant] = createSignal(previousData.variant > 7 || previousData.variant < 0 ? 0 : previousData.variant);
+  const [lightIndex, setLightIndex] = createSignal(previousData.lightIndex >= 0 && previousData.lightIndex < 8 ? previousData.lightIndex : 0);
   const [depth, setDepth] = createSignal(previousData.depth >= 0 && previousData.depth < 4 ? previousData.depth : 0);
-  const [effect, setEffect] = createSignal(
-    previousData.effect >= 0 && previousData.effect < 4 ? previousData.effect : 0,
-  );
-  const [isOpenedBaseType, setIsOpenedBaseType] = createSignal(false);
-  const [isOpenedVariant, setIsOpenedVariant] = createSignal(false);
+  const [effect, setEffect] = createSignal(previousData.effect >= 0 && previousData.effect < 8 ? previousData.effect : 0);
+  const [triggerReset, setTriggerReset] = createSignal(false);
+  const [variants, setVariants] = createSignal<{ exactId: number; label: string; description?: string }[]>(Variants[selectedBaseType()]);
+  // Picker related
+  // const [isOpenedBaseType, setIsOpenedBaseType] = createSignal(false);
+  // const [isOpenedVariant, setIsOpenedVariant] = createSignal(false);
 
-  // Post-processes
+  /// Post-processes ///
   onMount(() => init());
   createEffect(() => updateDisplay());
 
-  // Functions
+  /// Functions ///
   const init = () => {
+    setVariants(Variants[selectedBaseType()]);
     document.body.className =
       "bg-gradient-to-b from-mkw-850 to-mkw-800 text-mkw-300 selection:bg-mkw-500/50 pt-[5em] font-(font-family:--default-font-family) transition duration-250";
-    // displayResult = document.getElementById("disp_result");
-    // displayVariant = document.getElementById("disp_variant");
-    buttonBaseType
-      ? (buttonBaseType.innerHTML = `${
-          BaseTypes[previousData.baseType]
-        } (<span class="font-[Source_Code_Pro]">0x${previousData.baseType.toString(16).padStart(2, "0")}</span>)`)
-      : {};
-    buttonVariant!.innerHTML = `${
-      Variants[baseType()][variant()].label
-    } (<span class="font-[Source_Code_Pro]">0x${Variants[baseType()][variant()].exactId
-      .toString(16)
-      .padStart(2, "0")}</span>)`;
+
     document.addEventListener("mousedown", handleClickOutside);
     onCleanup(() => document.removeEventListener("mousedown", handleClickOutside));
   };
 
+  const calculateResult = () =>
+    (selectedBaseType() | (selectedVariant() << 5) | (lightIndex() << 8) | (depth() << 11) | (effect() << 13))
+      .toString(16)
+      .padStart(4, "0")
+      .toUpperCase();
+
+  const calculateVariant = () =>
+    (selectedVariant() | (lightIndex() << 3) | (depth() << 6) | (effect() << 8)).toString(16).padStart(3, "0").toUpperCase();
+
+  const calculateBits = () =>
+    (selectedBaseType() | (selectedVariant() << 5) | (lightIndex() << 8) | (depth() << 11) | (effect() << 13))
+      .toString(2)
+      .padStart(16, "0")
+      .toUpperCase();
+
+  const setTextToTarget = (
+    target: HTMLSpanElement | undefined,
+    value: string | number,
+    padding: number = 1,
+    format: "hex" | "bit" | "none" = "hex",
+  ) => {
+    if (typeof value === "number") {
+      switch (format) {
+        case "none":
+          target!.innerText = value.toString(16).toUpperCase().padStart(padding, "0");
+          break;
+        case "bit":
+          target!.innerText = value.toString(2).toUpperCase().padStart(padding, "0");
+          break;
+        default:
+          target!.innerText = `0x${value.toString(16).toUpperCase().padStart(padding, "0")}`;
+          break;
+      }
+    } else {
+      target!.innerText = value;
+    }
+  };
+
   const handleClickOutside = (event: MouseEvent) => {
     if (buttonBaseType?.contains(event.target as Node) || buttonVariant?.contains(event.target as Node)) return;
-    if (dropdownBaseType && !dropdownBaseType.contains(event.target as Node)) setIsOpenedBaseType(false);
-    if (dropdownVariant && !dropdownVariant.contains(event.target as Node)) setIsOpenedVariant(false);
+    // if (dropdownBaseType && !dropdownBaseType.contains(event.target as Node)) setIsOpenedBaseType(false);
+    // if (dropdownVariant && !dropdownVariant.contains(event.target as Node)) setIsOpenedVariant(false);
   };
 
   const updateDisplay = () => {
-    displayResult
-      ? (displayResult.innerHTML = (
-          baseType() |
-          (variant() << 5) |
-          (lightIndex() << 8) |
-          (depth() << 11) |
-          (effect() << 13)
-        )
-          .toString(16)
-          .toUpperCase()
-          .padStart(4, "0"))
-      : {};
-    displayVariant
-      ? (displayVariant.innerText = (variant() | (lightIndex() << 3) | (depth() << 6) | (effect() << 8))
-          .toString(16)
-          .toUpperCase()
-          .padStart(3, "0"))
-      : {};
+    // setTextToTarget(displayResult, baseType() | (variant() << 5) | (lightIndex() << 8) | (depth() << 11) | (effect() << 13), 4, "none");
+    // setTextToTarget(displayVariant, variant() | (lightIndex() << 3) | (depth() << 6) | (effect() << 8), 3, "none");
+    // setTextToTarget(displayBits, baseType() | (variant() << 5) | (lightIndex() << 8) | (depth() << 11) | (effect() << 13), 16, "bit");
+
+    // setTextToTarget(labelButtonBaseType, BaseTypes[baseType()]);
+    setTextToTarget(hexButtonBaseType, selectedBaseType(), 2);
+    // setTextToTarget(labelButtonVariant, Variants[selectedBaseType()][selectedVariant()].label);
+    setTextToTarget(hexButtonVariant, Variants[selectedBaseType()][selectedVariant()].exactId, 1);
 
     setPreviousData({
-      baseType: baseType(),
-      variant: variant(),
+      baseType: selectedBaseType(),
+      variant: selectedVariant(),
       lightIndex: lightIndex(),
       depth: depth(),
       effect: effect(),
@@ -103,211 +118,105 @@ export default function KclFlagCalculator() {
   };
 
   const selectBaseType = (index: number) => {
-    buttonBaseType!.innerHTML = `${BaseTypes[index]} (<span class="font-[Source_Code_Pro]">0x${index
-      .toString(16)
-      .padStart(2, "0")}</span>)`;
-    buttonVariant!.innerHTML = `${Variants[index][variant()].label} (<span class="font-[Source_Code_Pro]">0x${Variants[
-      index
-    ][variant()].exactId
-      .toString(16)
-      .padStart(2, "0")}</span>)`;
-
-    setIsOpenedBaseType(false);
-    setBaseType(index);
+    // setIsOpenedBaseType(false);
+    setSelectedBaseType(index);
+    setVariants(Variants[index]);
   };
 
   const selectVariant = (index: number) => {
-    buttonVariant!.innerHTML = `${Variants[baseType()][index].label} (<span class="font-[Source_Code_Pro]">0x${Variants[
-      baseType()
-    ][index].exactId
-      .toString(16)
-      .padStart(2, "0")}</span>)`;
-    setIsOpenedVariant(false);
-    setVariant(index);
-  };
-
-  const updateLightIndex = (isAdd = false) => {
-    isAdd
-      ? setLightIndex((prev) => (prev < 7 ? prev + 1 : prev))
-      : setLightIndex((prev) => (prev > 0 ? prev - 1 : prev));
-  };
-
-  const updateDepth = (isAdd = false) => {
-    isAdd ? setDepth((prev) => (prev < 3 ? prev + 1 : prev)) : setDepth((prev) => (prev > 0 ? prev - 1 : prev));
+    // setIsOpenedVariant(false);
+    setSelectedVariant(index);
   };
 
   const updateEffect = (v: number) => {
-    setEffect((prev) => prev ^ v);
+    setEffect((prev) => prev ^ (1 << v));
   };
 
-  const isEqualEffect = (v: number) => {
-    return (effect() & v) !== 0 ? "bg-mkw-500/30 hover:bg-mkw-500/45 hover:text-mkw-250" : "hover:bg-mkw-500/30";
+  const resetValue = () => {
+    setTriggerReset(true);
+    setSelectedBaseType(0);
+    setSelectedVariant(0);
+    setVariants(Variants[0]);
+    setLightIndex(0);
+    setDepth(0);
+    setEffect(0);
+    setTriggerReset(false);
   };
 
   return (
-    <>
-      <Title>KCL Flag Calculator - Mario Kart Wii</Title>
-      <Description>A literally simple KCL Flag Calculator for Custom Track creation</Description>
-      <Container name="KCL Flag Calculator" version="RC2-pre2" maxWidth="max-w-full sm:max-w-xl" colors="mkw">
-        <div class="grid sm:auto-cols-[.33fr_.67fr] sm:grid-flow-col gap-6 sm:gap-5">
-          <div class="flex flex-col gap-4">
+    <Container
+      name="KCL Flag Calculator"
+      version="RC3"
+      description="A literally simple KCL Flag Calculator for Custom Track creation"
+      maxWidth="max-w-full xs:max-w-xl"
+      colors="mkw">
+      <div class="grid sm:auto-cols-[.33fr_.67fr] sm:grid-flow-col gap-6 sm:gap-5">
+        <div class="flex flex-col gap-4">
+          <ValueDisplay id="disp_basetype" label="Result" value={calculateResult()} onCopyToClipboard={() => CopyToClipboard(calculateResult())} />
+          <ValueDisplay
+            id="disp_variant"
+            label="Variant only"
+            value={calculateVariant()}
+            onCopyToClipboard={() => CopyToClipboard(calculateVariant())}
+          />
+          <ValueDisplay id="disp_bits" class="sm:text-sm" label="Bits*" value={calculateBits()} />
+          <button
+            class="bg-mkw-500/10 hover:bg-mkw-500/20 border-mkw-600 hover:border-mkw-500 transition duration-250 p-2.5 rounded-lg border grid auto-cols-[1fr_auto] grid-flow-col cursor-pointer"
+            onClick={resetValue}>
+            Reset
+          </button>
+        </div>
+        <div class="bg-mkw-500/15 flex flex-col gap-4 p-4 rounded-lg">
+          <div class="flex flex-col gap-1.5 relative">
+            <div class="flex">
+              <strong>Base type</strong>
+              <span
+                ref={hexButtonBaseType}
+                id="current_basetype_hex"
+                class="outline-mkw-500 font-[Source_Code_Pro] outline-1 rounded-full text-sm px-1.5 py-0.5 ml-auto"
+              />
+            </div>
+            <Picklist
+              id="test_picker_basetype"
+              list={BaseTypes}
+              selectedIndex={selectedBaseType}
+              onSelect={(i) => selectBaseType(i)}
+              isReset={triggerReset}
+            />
+          </div>
+          <div class="flex flex-col gap-1.5 relative">
+            <div class="flex">
+              <strong>Variant</strong>
+              <span
+                ref={hexButtonVariant}
+                id="current_variant_hex"
+                class="outline-mkw-500 font-[Source_Code_Pro] outline-1 rounded-full text-sm px-1.5 py-0.5 ml-auto"
+              />
+            </div>
+            <Picklist id="variants" list={variants} selectedIndex={selectedVariant} onSelect={(i) => selectVariant(i)} isReset={triggerReset} />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">
-              <strong>Result</strong>
-              <div
-                id="disp_result"
-                class="bg-mkw-500/20 hover:bg-mkw-500/30 focus:bg-mkw-500/30 border-transparent hover:border-mkw-550 focus:border-mkw-550 transition duration-250 font-[Source_Code_Pro] p-2.5 rounded-lg border relative overflow-hidden group">
-                <span ref={displayResult}>0000</span>
-                <button
-                  class="hover:bg-mkw-400/30 absolute top-[50%] translate-y-[-50%] left-full group-hover:-translate-x-[112%] p-2 transition duration-250 rounded-md cursor-pointer"
-                  onClick={() => CopyToClipboard(displayResult?.innerText!)}>
-                  <Copy />
-                </button>
-              </div>
+              <strong>Light set</strong>
+              <NumericInput id="lightset" min={0} max={7} defaultValue={lightIndex()} onChange={(i) => setLightIndex(i)} isReset={triggerReset} />
             </div>
             <div class="flex flex-col gap-1.5">
-              <strong>Variant only</strong>
-              <div
-                id="disp_variant"
-                class="bg-mkw-500/20 hover:bg-mkw-500/30 focus:bg-mkw-500/30 border-transparent hover:border-mkw-550 focus:border-mkw-550 transition duration-250 font-[Source_Code_Pro] p-2.5 rounded-lg border relative overflow-hidden group">
-                <span ref={displayVariant}>000</span>
-                <button
-                  class="hover:bg-mkw-400/30 absolute top-[50%] translate-y-[-50%] left-full group-hover:-translate-x-[112%] p-2 transition duration-250 rounded-md cursor-pointer"
-                  onClick={() => CopyToClipboard(displayVariant?.innerText!)}>
-                  <Copy />
-                </button>
-              </div>
+              <strong>Depth</strong>
+              <NumericInput id="depth" min={0} max={3} defaultValue={depth()} onChange={(i) => setDepth(i)} isReset={triggerReset} />
             </div>
           </div>
-          <div class="bg-mkw-500/15 flex flex-col gap-4 p-4 rounded-lg">
-            <div class="flex flex-col gap-1.5 relative">
-              <strong>Base type</strong>
-              <button
-                id="btn_picklist_basetype"
-                class="bg-mkw-500/10 hover:bg-mkw-500/20 border-mkw-600 hover:border-mkw-500 transition duration-250 p-2.5 rounded-lg border grid auto-cols-[1fr_auto] grid-flow-col cursor-pointer items-center-safe"
-                onClick={() => {
-                  setIsOpenedVariant((prev) => (prev ? false : prev));
-                  setIsOpenedBaseType((prev) => !prev);
-                }}>
-                <span ref={buttonBaseType} id="current_basetype" class="text-left">
-                  Road (<span class="font-[Source_Code_Pro]">0x00</span>)
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 448 512">
-                  <path
-                    fill="currentColor"
-                    d="M201.4 374.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 306.7L86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"
-                  />
-                </svg>
-              </button>
-              <Show when={isOpenedBaseType()}>
-                <div
-                  ref={dropdownBaseType}
-                  class="bg-mkw-700/75 border-mkw-650 shadow-mkw-850 shadow-2xl backdrop-blur-xs absolute top-[calc(.6em_+_100%)] w-full max-h-80 border rounded-lg z-1000 p-2.5 flex flex-col gap-2 overflow-y-auto scrollbar-thin">
-                  <For each={BaseTypes}>
-                    {(label, i) => (
-                      <button
-                        class="hover:bg-mkw-650 border-transparent hover:border-mkw-550 hover:text-mkw-200 p-2.5 rounded-lg text-left border transition duration-250"
-                        classList={{ "bg-mkw-650": baseType() === i() }}
-                        onClick={() => selectBaseType(i())}>
-                        {label}
-                      </button>
-                    )}
-                  </For>
-                </div>
-              </Show>
-            </div>
-            <div class="flex flex-col gap-1.5 relative">
-              <strong>Variant</strong>
-              <button
-                id="btn_picklist_variant"
-                class="bg-mkw-500/10 hover:bg-mkw-500/20 border-mkw-600 hover:border-mkw-500 transition duration-250 p-2.5 rounded-lg border grid auto-cols-[1fr_auto] grid-flow-col cursor-pointer items-center-safe"
-                onClick={() => {
-                  setIsOpenedBaseType((prev) => (prev ? false : prev));
-                  setIsOpenedVariant((prev) => !prev);
-                }}>
-                <span ref={buttonVariant} id="current_variant" class="text-left">
-                  Normal (<span class="font-[Source_Code_Pro]">0x0</span>)
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 448 512">
-                  <path
-                    fill="currentColor"
-                    d="M201.4 374.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 306.7L86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"
-                  />
-                </svg>
-              </button>
-              <Show when={isOpenedVariant()}>
-                <div
-                  ref={dropdownVariant}
-                  class="bg-mkw-700/75 border-mkw-650 shadow-mkw-850 shadow-2xl backdrop-blur-xs absolute top-[calc(.6em_+_100%)] w-full max-h-80 border rounded-lg z-1000 p-2.5 flex flex-col gap-2 overflow-y-auto scrollbar-thin">
-                  <For each={Variants[baseType()]}>
-                    {(v, i) => (
-                      <button
-                        class="hover:bg-mkw-650 border-transparent hover:border-mkw-550 hover:text-mkw-200 p-2.5 rounded-lg text-left border transition duration-250"
-                        classList={{ "bg-mkw-650": variant() === i() }}
-                        onClick={() => selectVariant(v.exactId)}>
-                        {v.label}
-                      </button>
-                    )}
-                  </For>
-                </div>
-              </Show>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex flex-col gap-1.5">
-                <strong>Shadow</strong>
-                <div class="bg-mkw-500/10 border-mkw-600 hover:border-mkw-500 grid grid-cols-3 border rounded-lg transition duration-250">
-                  <button
-                    class="hover:bg-mkw-500/30 transition duration-250 cursor-pointer"
-                    onClick={() => updateLightIndex()}>
-                    <AngleLeft className="m-auto" size={20} />
-                  </button>
-                  <div class="p-2.5 text-center">{lightIndex()}</div>
-                  <button
-                    class="hover:bg-mkw-500/30 transition duration-250 cursor-pointer"
-                    onClick={() => updateLightIndex(true)}>
-                    <AngleRight className="m-auto" size={20} />
-                  </button>
-                </div>
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <strong>Depth</strong>
-                <div class="bg-mkw-500/10 border-mkw-600 hover:border-mkw-500 grid grid-cols-3 border rounded-lg transition duration-250">
-                  <button
-                    class="hover:bg-mkw-500/30 transition duration-250 cursor-pointer"
-                    onClick={() => updateDepth()}>
-                    <AngleLeft className="m-auto" size={20} />
-                  </button>
-                  <div class="p-2.5 text-center">{depth()}</div>
-                  <button
-                    class="hover:bg-mkw-500/30 transition duration-250 cursor-pointer"
-                    onClick={() => updateDepth(true)}>
-                    <AngleRight className="m-auto" size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <strong>Effects</strong>
-              <div class="bg-mkw-500/10 border-mkw-600 hover:border-mkw-500 grid grid-cols-3 border rounded-lg transition duration-250">
-                <button
-                  class={`${isEqualEffect(0b001)} transition duration-250 cursor-pointer p-2.5 text-center`}
-                  onClick={() => updateEffect(0b001)}>
-                  Trickable
-                </button>
-                <button
-                  class={`${isEqualEffect(0b010)} transition duration-250 cursor-pointer p-2.5 text-center`}
-                  onClick={() => updateEffect(0b010)}>
-                  Reject
-                </button>
-                <button
-                  class={`${isEqualEffect(0b100)} transition duration-250 cursor-pointer p-2.5 text-center`}
-                  onClick={() => updateEffect(0b100)}>
-                  Wall
-                </button>
-              </div>
-            </div>
+          <div class="flex flex-col gap-1.5">
+            <strong>Effects</strong>
+            <MultiPicker
+              id="effect"
+              options={["Trickable", "Reject", "Wall"]}
+              defaultValue={effect()}
+              onChange={(i) => updateEffect(i)}
+              isReset={triggerReset}
+            />
           </div>
         </div>
-      </Container>
-    </>
+      </div>
+    </Container>
   );
 }

@@ -1,0 +1,27 @@
+{
+  "languages": {
+    "HTML": {
+      "tab_size": 2,
+    },
+    "CSS": {
+      "tab_size": 2,
+    },
+    "SCSS": {
+      "tab_size": 2,
+    },
+    "TypeScript": {
+      "formatter": {
+        "language_server": {
+          "name": "biome",
+        },
+      },
+    },
+    "TSX": {
+      "formatter": {
+        "language_server": {
+          "name": "biome",
+        },
+      },
+    },
+  },
+}
